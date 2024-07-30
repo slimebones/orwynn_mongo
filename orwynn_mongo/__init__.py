@@ -903,7 +903,6 @@ async def _init_plugin(args: SysArgs[MongoCfg]) -> Res[None]:
     return Ok(None)
 
 async def _destroy_plugin(args: SysArgs[MongoCfg]) -> Res[None]:
-    print(1, env.is_clean_allowed(), env.is_debug(), _get_global_cfg())
     if _get_global_cfg().must_clean_db_on_destroy:
         drop_db()
 
