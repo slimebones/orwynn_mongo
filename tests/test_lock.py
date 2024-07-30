@@ -9,10 +9,10 @@ from rxcat import ServerBus
 from orwynn_mongo import (
     CheckLockDoc,
     Doc,
+    DocField,
     LockDoc,
     UnlockDoc,
-    DocField,
-    reg_doc_types
+    reg_doc_types,
 )
 
 

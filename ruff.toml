@@ -1,5 +1,3 @@
-select = ["ALL"]
-
 fix = true
 line-length = 79
 respect-gitignore = true
@@ -12,6 +10,8 @@ exclude = [
     "sql"
 ]
 
+[lint]
+select = ["ALL"]
 ignore = [
     "RUF012",
     "FIX002",
@@ -110,10 +110,10 @@ ignore = [
     "FBT",
 ]
 
-[per-file-ignores]
+[lint.per-file-ignores]
 "test_*.py" = ["S101", "PLR2004"]
 "testing.py" = ["S101", "PLR2004"]
 "conftest.py" = ["S101", "F811", "PLR2004"]
 
-[mccabe]
+[lint.mccabe]
 max-complexity = 10

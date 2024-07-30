@@ -1,10 +1,9 @@
 import pytest
+from orwynn import BaseModel, SubOpts, SysArgs, sys
 from pykit.check import check
 from rxcat import Ok, PubOpts, ServerBus
 
 from orwynn_mongo import Doc, body_collection_factory
-from orwynn import BaseModel, SubOpts, SysArgs, sys
-
 from tests.conftest import MockCfg
 
 

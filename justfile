@@ -4,7 +4,7 @@ test target="" show="all" *flags="":
 	poetry run coverage run -m pytest -x --ignore=tests/app -p no:warnings --show-capture={{show}} --failed-first --asyncio-mode=auto {{flags}} tests/{{target}}
 
 lint target="." *flags="":
-	poetry run ruff {{flags}} {{target}}
+	poetry run ruff check {{flags}} {{target}}
 
 check: lint test
 

@@ -1,4 +1,5 @@
 from pykit.query import UpdQuery
+
 from tests.conftest import NestedDocument, SimpleDocument
 
 

@@ -2,6 +2,7 @@ from pykit.query import AggQuery, SearchQuery
 
 from tests.conftest import SimpleDocument
 
+
 def test_main(document_1: SimpleDocument, document_2: SimpleDocument):
     assert {item.sid for item in SimpleDocument.get_many()} == {
         document_1.sid,

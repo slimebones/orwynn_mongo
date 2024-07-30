@@ -1,5 +1,5 @@
-from orwynn import Cfg
 import pytest
+from orwynn import Cfg
 
 from orwynn_mongo import Doc
 

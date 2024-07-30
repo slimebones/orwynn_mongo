@@ -1,8 +1,15 @@
 import typing
-from contextlib import suppress
 from enum import Enum
-from typing import (Any, ClassVar, Coroutine, Generic, Iterable, Literal, Self,
-                    TypeVar)
+from typing import (
+    Any,
+    ClassVar,
+    Coroutine,
+    Generic,
+    Iterable,
+    Literal,
+    Self,
+    TypeVar,
+)
 
 import inflection
 from bson import ObjectId
@@ -14,8 +21,7 @@ from pykit.err import InpErr, LockErr, NotFoundErr, UnsupportedErr, ValErr
 from pykit.log import log
 from pykit.mark import MarkErr, MarkUtils
 from pykit.query import AggQuery, CreateQuery, Query, SearchQuery, UpdQuery
-from pykit.res import Err, Ok, Res
-from pykit.singleton import Singleton
+from pykit.res import Ok, Res
 from pykit.types import T
 from pymongo import MongoClient
 from pymongo import ReturnDocument as ReturnDocStrat
@@ -57,12 +63,12 @@ class MongoCfg(Cfg):
 
 def _get_global_cfg() -> MongoCfg:
     if _g.cfg is None:
-        raise ValErr(f"non-initialized mongo plugin")
+        raise ValErr("non-initialized mongo plugin")
     return _g.cfg
 
 def _get_global_db() -> MongoDb:
     if _g.db is None:
-        raise ValErr(f"non-initialized mongo plugin")
+        raise ValErr("non-initialized mongo plugin")
     return _g.db
 
 # We manage mongo CRUD by Create, Get, Upd and Del requests.
@@ -834,7 +840,7 @@ class Doc(BaseModel):
 
     @classmethod
     def _adjust_data_sid_to_mongo(cls, data: dict):
-        if "sid" in data and data["sid"]:
+        if data.get("sid"):
             input_sid_value: Any = data["sid"]
             if input_sid_value is not None:
                 if (
