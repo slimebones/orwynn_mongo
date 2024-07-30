@@ -1,18 +1,19 @@
-from tests.mongo.conftest import NestedDocument, SimpleDocument
+from pykit.query import UpdQuery
+from tests.conftest import NestedDocument, SimpleDocument
 
 
 def test_main(document_1: SimpleDocument):
-    f = document_1.try_upd({"$set": {"name": "beer"}})
+    f = document_1.try_upd(UpdQuery({"$set": {"name": "beer"}}))
     assert f
     assert f.name == "beer"
 
 def test_two_fields(document_1: SimpleDocument):
-    f = document_1.try_upd({
+    f = document_1.try_upd(UpdQuery({
         "$set": {
             "name": "beer",
             "price": 2.5
         }
-    })
+    }))
     assert f
     assert f.name == "beer"
     assert f.price == 2.5

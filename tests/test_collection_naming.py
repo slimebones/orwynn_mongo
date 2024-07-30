@@ -1,4 +1,4 @@
-from orwynn.mongo import Doc
+from orwynn_mongo import Doc
 
 
 def test_snake_case():

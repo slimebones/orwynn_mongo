@@ -3,7 +3,7 @@ from pykit.err import NotFoundErr
 from pykit.mark import MarkErr
 from pykit.query import SearchQuery
 
-from orwynn.mongo import Doc
+from orwynn_mongo import Doc
 
 
 class _ArchivableDoc(Doc):

@@ -2,7 +2,7 @@ from enum import Enum
 
 from pykit.check import check
 
-from orwynn.mongo import Mongo
+from orwynn_mongo import convert_compatible
 
 
 class StringEnum(Enum):
@@ -35,19 +35,19 @@ def test_already_compatible():
     """
     Should work correctly for already compatible types.
     """
-    assert Mongo.convert_compatible("hello") == "hello"
-    assert Mongo.convert_compatible(2) == 2
-    assert Mongo.convert_compatible(2.3) == 2.3
-    assert Mongo.convert_compatible(True) is True
-    assert Mongo.convert_compatible([1, 2, 3]) == [1, 2, 3]
-    assert Mongo.convert_compatible({
+    assert convert_compatible("hello") == "hello"
+    assert convert_compatible(2) == 2
+    assert convert_compatible(2.3) == 2.3
+    assert convert_compatible(True) is True
+    assert convert_compatible([1, 2, 3]) == [1, 2, 3]
+    assert convert_compatible({
         1: "hello",
         2: "world",
     }) == {
         1: "hello",
         2: "world",
     }
-    assert Mongo.convert_compatible(None) is None
+    assert convert_compatible(None) is None
 
 
 def test_containers():
@@ -74,21 +74,21 @@ def test_containers():
         ],
     }
 
-    assert Mongo.convert_compatible(mock_dict) == mock_dict
+    assert convert_compatible(mock_dict) == mock_dict
 
 
 def test_enum_string():
     """
     Should convert enum correctly.
     """
-    assert Mongo.convert_compatible(StringEnum.Red) == "red"
+    assert convert_compatible(StringEnum.Red) == "red"
 
 
 def test_mongovalue_string():
     """
     Should convert objects with attribute `mongovalue`.
     """
-    assert Mongo.convert_compatible(StringObj()) == "hello"
+    assert convert_compatible(StringObj()) == "hello"
 
 
 def test_mongovalue_dict():
@@ -96,7 +96,7 @@ def test_mongovalue_dict():
     Should convert objects with attribute `mongovalue` which returns
     dict.
     """
-    assert Mongo.convert_compatible(DictObj()) == {
+    assert convert_compatible(DictObj()) == {
         1: "hello",
         2: "world",
     }
@@ -107,7 +107,7 @@ def test_mongovalue_set():
     Should raise an error for set returning mongovalue attribute.
     """
     check.expect(
-        Mongo.convert_compatible,
+        convert_compatible,
         ValueError,
         SetObj(),
     )

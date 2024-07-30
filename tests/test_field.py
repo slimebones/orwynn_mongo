@@ -1,8 +1,7 @@
 from pykit.check import check
 from pykit.query import UpdQuery
 
-from orwynn.mongo import Doc, Mongo
-from orwynn.mongo.field import DocField, UniqueFieldErr
+from orwynn_mongo import Doc, DocField, UniqueFieldErr, reg_doc_types
 
 
 class _Doc1(Doc):
@@ -79,7 +78,7 @@ def test_links_multiple(app):
         COLLECTION_NAMING = "snake_case"
         IS_ARCHIVABLE = True
 
-    Mongo.reg_doc_types(Doc1, Doc2, Doc3)
+    reg_doc_types(Doc1, Doc2, Doc3)
 
     d2_1 = Doc2().create()
     d2_2 = Doc2().create()

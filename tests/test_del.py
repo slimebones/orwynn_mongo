@@ -1,4 +1,4 @@
-from tests.mongo.conftest import SimpleDocument
+from tests.conftest import SimpleDocument
 
 
 def test_del(document_1: SimpleDocument, document_2: SimpleDocument):

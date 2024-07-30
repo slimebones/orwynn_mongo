@@ -1,6 +1,7 @@
+from orwynn import Cfg
 import pytest
 
-from orwynn.mongo import Doc
+from orwynn_mongo import Doc
 
 
 class SimpleDocument(Doc):
@@ -8,10 +9,11 @@ class SimpleDocument(Doc):
     price: float
     priority: int = 5
 
-
 class NestedDocument(Doc):
     nested: dict
 
+class MockCfg(Cfg):
+    pass
 
 @pytest.fixture
 def document_1(app) -> SimpleDocument:

@@ -29,7 +29,11 @@ from orwynn_mongo._field import DocField, UniqueFieldErr
 __all__ = [
     "DocField",
     "UniqueFieldErr",
-    "plugin"
+    "plugin",
+    "convert_compatible",
+    "convert_to_object_id",
+    "convert_dict",
+    "reg_doc_types"
 ]
 
 MongoCompatibleType = str | int | float | bool | list | dict | None
@@ -855,8 +859,8 @@ class Doc(BaseModel):
 
 TDoc = TypeVar("TDoc", bound=Doc)
 async def _init_plugin(args: SysArgs[MongoCfg]) -> Res[None]:
-    _client = MongoClient(args.cfg.url)
-    _db = _client[args.cfg.database_name]
+    _g.client = MongoClient(args.cfg.url)
+    _g.db = _g.client[args.cfg.database_name]
 
     for doc_type in Doc.__subclasses__():
         # set new dict to not leak it between docs
