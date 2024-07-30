@@ -1,51 +1,34 @@
 import typing
 from contextlib import suppress
 from enum import Enum
-from typing import (
-    Any,
-    ClassVar,
-    Coroutine,
-    Generic,
-    Iterable,
-    Literal,
-    Self,
-    TypeVar,
-)
+from typing import (Any, ClassVar, Coroutine, Generic, Iterable, Literal, Self,
+                    TypeVar)
 
 import inflection
 from bson import ObjectId
 from bson.errors import InvalidId
+from orwynn import Cfg, Flag, Plugin, SysArgs, TUdto, Udto, env, sys
 from pydantic import BaseModel
 from pykit.check import check
 from pykit.err import InpErr, LockErr, NotFoundErr, UnsupportedErr, ValErr
 from pykit.log import log
 from pykit.mark import MarkErr, MarkUtils
-from pykit.query import (
-    AggQuery,
-    Query,
-    SearchQuery,
-    UpdQuery,
-)
-from pykit.res import Res, Ok, Err
+from pykit.query import AggQuery, CreateQuery, Query, SearchQuery, UpdQuery
+from pykit.res import Err, Ok, Res
 from pykit.singleton import Singleton
 from pykit.types import T
-from pykit.query import CreateQuery
 from pymongo import MongoClient
 from pymongo import ReturnDocument as ReturnDocStrat
 from pymongo.command_cursor import CommandCursor
 from pymongo.cursor import Cursor as MongoCursor
-from rxcat import MbodyCondition
 from pymongo.database import Database as MongoDb
+from rxcat import MbodyCondition
 
-from orwynn import SysArgs, env, sys
-from orwynn.cfg import Cfg
-from orwynn.dto import TUdto, Udto
-from orwynn.mongo.field import DocField, UniqueFieldErr
-from orwynn.models import Flag
-from orwynn.plugin import Plugin
+from orwynn_mongo._field import DocField, UniqueFieldErr
 
 __all__ = [
     "DocField",
+    "UniqueFieldErr",
     "plugin"
 ]
 
@@ -69,14 +52,14 @@ class MongoCfg(Cfg):
     default__is_archivable: bool = False
 
 def _get_global_cfg() -> MongoCfg:
-    if _g__cfg is None:
+    if _g.cfg is None:
         raise ValErr(f"non-initialized mongo plugin")
-    return _g__cfg
+    return _g.cfg
 
 def _get_global_db() -> MongoDb:
-    if _g__db is None:
+    if _g.db is None:
         raise ValErr(f"non-initialized mongo plugin")
-    return _g__db
+    return _g.db
 
 # We manage mongo CRUD by Create, Get, Upd and Del requests.
 # Get and Del requests are ready-to-use and coded. Create and Upd requests
@@ -877,21 +860,21 @@ async def _init_plugin(args: SysArgs[MongoCfg]) -> Res[None]:
 
     for doc_type in Doc.__subclasses__():
         # set new dict to not leak it between docs
-        if doc_type.get_collection() in _g__doc_types:
+        if doc_type.get_collection() in _g.doc_types:
             log.err(f"duplicate doc {doc_type}")
             continue
         doc_type._BACKLINKS = {}  # noqa: SLF001
-        _g__doc_types[doc_type.get_collection()] = doc_type
-    for doc_type in _g__doc_types.values():
+        _g.doc_types[doc_type.get_collection()] = doc_type
+    for doc_type in _g.doc_types.values():
         for field in doc_type.FIELDS:
             _process_field_link(doc_type, field)
 
     return Ok(None)
 
 async def _destroy_plugin(args: SysArgs[MongoCfg]) -> Res[None]:
-    _g__client = None
-    _g__db = None
-    _g__doc_types.clear()
+    _g.client = None
+    _g.db = None
+    _g.doc_types.clear()
 
     if _get_global_cfg().must_clean_db_on_destroy:
         drop_db()
@@ -908,12 +891,12 @@ def reg_doc_types(*doc_types: type[Doc]):
     skip_doc_types = []
     for doc_type in doc_types:
         # remove already processed types
-        if doc_type in [_g__doc_types]:
+        if doc_type in [_g.doc_types]:
             skip_doc_types.append(doc_type)
             continue
         # set new dict to not leak it between docs
         doc_type._BACKLINKS = {}  # noqa: SLF001
-        _g__doc_types[doc_type.get_collection()] = doc_type
+        _g.doc_types[doc_type.get_collection()] = doc_type
     for doc_type in doc_types:
         if doc_type in skip_doc_types:
             continue
@@ -935,28 +918,28 @@ def _process_field_link(host_doc_type: type[Doc], field: DocField):
         field.name)
 
 def try_get_doc_type(name: str) -> type[Doc] | None:
-    return _g__doc_types.get(name, None)
+    return _g.doc_types.get(name, None)
 
 def drop_db():
     if not env.is_debug():
         return
     if not env.is_clean_allowed():
         return
-    if _g__client is not None and _g__db is not None:
+    if _g.client is not None and _g.db is not None:
         log.info("drop mongo db")
-        _g__client.drop_database(_g__db)
+        _g.client.drop_database(_g.db)
 
 def try_get(
         collection: str,
         sq: SearchQuery,
         **kwargs) -> dict | None:
-    if _g__client is None or _g__db is None:
+    if _g.client is None or _g.db is None:
         raise ValErr("no mongo connection")
 
     check.instance(collection, str)
     check.instance(sq, dict)
 
-    result: Any | None = _g__db[collection].find_one(
+    result: Any | None = _g.db[collection].find_one(
         sq, **kwargs
     )
 
@@ -971,26 +954,26 @@ def get_many(
     sq: SearchQuery,
     **kwargs
 ) -> MongoCursor:
-    if _g__client is None or _g__db is None:
+    if _g.client is None or _g.db is None:
         raise ValErr("no mongo connection")
 
     check.instance(collection, str)
     check.instance(sq, dict)
 
-    return _g__db[collection].find(sq, **kwargs)
+    return _g.db[collection].find(sq, **kwargs)
 
 def create(
     collection: str,
     data: dict,
     **kwargs
 ) -> dict:
-    if _g__client is None or _g__db is None:
+    if _g.client is None or _g.db is None:
         raise ValErr("no mongo connection")
 
     check.instance(collection, str)
     check.instance(data, dict)
 
-    inserted_id: str = _g__db[collection].insert_one(
+    inserted_id: str = _g.db[collection].insert_one(
         data,
         **kwargs
     ).inserted_id
@@ -1008,14 +991,14 @@ def try_upd(
     **kwargs
 ) -> dict | None:
     """Updates a document matching query and returns updated version."""
-    if _g__client is None or _g__db is None:
+    if _g.client is None or _g.db is None:
         raise ValErr("no mongo connection")
 
     check.instance(collection, str)
     check.instance(sq, dict)
     check.instance(uq, dict)
 
-    upd_doc: Any = _g__db[collection].find_one_and_update(
+    upd_doc: Any = _g.db[collection].find_one_and_update(
         sq,
         uq,
         return_document=ReturnDocStrat.AFTER,
@@ -1032,13 +1015,13 @@ def delete(
     sq: SearchQuery,
     **kwargs
 ):
-    if _g__client is None or _g__db is None:
+    if _g.client is None or _g.db is None:
         raise ValErr("no mongo connection")
 
     check.instance(collection, str)
     check.instance(sq, dict)
 
-    del_result = _g__db[collection].delete_one(
+    del_result = _g.db[collection].delete_one(
         sq,
         **kwargs)
 
@@ -1049,13 +1032,13 @@ def try_del(
         collection: str,
         sq: SearchQuery,
         **kwargs) -> bool:
-    if _g__client is None or _g__db is None:
+    if _g.client is None or _g.db is None:
         raise ValErr("no mongo connection")
 
     check.instance(collection, str)
     check.instance(sq, dict)
 
-    del_result = _g__db[collection].delete_one(
+    del_result = _g.db[collection].delete_one(
         sq,
         **kwargs
     )
@@ -1436,7 +1419,8 @@ plugin = Plugin(
     init=_init_plugin,
     destroy=_destroy_plugin)
 
-_g__client: MongoClient | None = None
-_g__db: MongoDb | None = None
-_g__doc_types: dict[str, type[Doc]] = {}
-_g__cfg: MongoCfg | None = None
+class _g:
+    client: MongoClient | None = None
+    db: MongoDb | None = None
+    doc_types: dict[str, type[Doc]] = {}
+    cfg: MongoCfg | None = None
