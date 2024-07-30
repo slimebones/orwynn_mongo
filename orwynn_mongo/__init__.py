@@ -21,7 +21,7 @@ from pykit.err import InpErr, LockErr, NotFoundErr, UnsupportedErr, ValErr
 from pykit.log import log
 from pykit.mark import MarkErr, MarkUtils
 from pykit.query import AggQuery, CreateQuery, Query, SearchQuery, UpdQuery
-from pykit.res import Ok, Res
+from pykit.res import Err, Ok, Res
 from pykit.types import T
 from pymongo import MongoClient
 from pymongo import ReturnDocument as ReturnDocStrat
@@ -83,27 +83,29 @@ def _get_global_db() -> MongoDb:
 # redefine field to this, but now we're fine.
 
 class DocReq(BaseModel):
+    _KEY_TO_QUERY_TYPE: ClassVar[dict[str, type[Query]]] = {
+        "searchq": SearchQuery,
+        "updq": UpdQuery,
+        "createq": CreateQuery,
+        "aggq": AggQuery
+    }
+
     def __init__(self, **data):
         for k, v in data.items():
-            lower_k = k.lower()
-            if lower_k.endswith(("query", "q")):
-                if not isinstance(v, (dict, Query)):
+            if k in self._KEY_TO_QUERY_TYPE:
+                qtype = self._KEY_TO_QUERY_TYPE[k]
+                if not isinstance(v, dict):
                     raise ValErr(
-                        "val for key ending with \"Query\" is"
-                         " expected to be of type dict/Query")
-                if isinstance(v, dict):
-                    # convert v to according query
-                    if lower_k.startswith("search") or lower_k == "sq":
-                        data[k] = SearchQuery(v)
-                    elif lower_k.startswith("upd") or lower_k == "uq":
-                        data[k] = UpdQuery(v)
-                    elif lower_k.startswith("aggq") or lower_k == "aq":
-                        data[k] = AggQuery(v)
-                    elif lower_k.startswith("create") or lower_k == "cq":
-                        data[k] = CreateQuery(v)
-                    else:
-                        data[k] = Query(v)
+                        f"for key {k}, val {v} must be of type {dict}")
+                # convert to query type
+                data[k] = qtype(v)
         super().__init__(**data)
+
+    # somehow pydantic refuses to gen schema for Query (which is derived
+    # from dict), so we allow arbitrary types, since incoming dicts will be
+    # converted to queries
+    class Config:
+        arbitrary_types_allowed = True
 
 class GetDocs(DocReq):
     collection: str
@@ -167,7 +169,7 @@ class UpddField(BaseModel):
     oldval: Any
     newval: Any
 
-class CreatedDocEvt(BaseModel):
+class CreatedDoc(BaseModel):
     collection: str
     sid: str
 
@@ -175,7 +177,7 @@ class CreatedDocEvt(BaseModel):
     def code():
         return "orwynn_mongo::created_doc"
 
-class UpddDocEvt(BaseModel):
+class UpddDoc(BaseModel):
     collection: str
     sid: str
     updd_fields: list[UpddField]
@@ -184,7 +186,7 @@ class UpddDocEvt(BaseModel):
     def code():
         return "orwynn_mongo::updd_doc"
 
-class DeldDocEvt(BaseModel):
+class DeldDoc(BaseModel):
     collection: str
     sid: str
 
@@ -865,6 +867,24 @@ class Doc(BaseModel):
 
 TDoc = TypeVar("TDoc", bound=Doc)
 async def _init_plugin(args: SysArgs[MongoCfg]) -> Res[None]:
+    reg_types_res = await args.bus.reg_types([
+        GetDocs,
+        GotDocUdto,
+        DelDoc,
+        CreateDoc,
+        UpdDoc,
+        AggDoc,
+        CreatedDoc,
+        UpddDoc,
+        DeldDoc,
+        LockDoc,
+        CheckLockDoc,
+        UnlockDoc,
+        UniqueFieldErr
+    ])
+    if isinstance(reg_types_res, Err):
+        return reg_types_res
+
     _g.client = MongoClient(args.cfg.url)
     _g.db = _g.client[args.cfg.database_name]
 
