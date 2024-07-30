@@ -1,6 +1,6 @@
 # orwynn_mongo
 
-We no more use mongo as our primary db.
+We don't use mongo as our primary db anymore, so this project is on hold.
 
 Here are the tasks that left unfinished:
 - ensure tests are ok after migration
