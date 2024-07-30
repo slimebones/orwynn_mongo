@@ -1216,13 +1216,13 @@ files = [
 
 [[package]]
 name = "sb-orwynn"
-version = "3.0.0"
+version = "3.0.1"
 description = "Scalable web-framework with out-of-the-box architecture"
 optional = false
 python-versions = "<4.0,>=3.11"
 files = [
-    {file = "sb_orwynn-3.0.0-py3-none-any.whl", hash = "sha256:283944c96d3fc0a9691c2a10a66212d4e97ede1ff5c52b1d835d253a02a4438f"},
-    {file = "sb_orwynn-3.0.0.tar.gz", hash = "sha256:c112c10673306f07ba29cc8736bb143dd7d6041efba0526c7202eec68550df23"},
+    {file = "sb_orwynn-3.0.1-py3-none-any.whl", hash = "sha256:c5f65e38a84995749bc0a353f0c98467964e04b8213f9bb1ead18f33a81b6426"},
+    {file = "sb_orwynn-3.0.1.tar.gz", hash = "sha256:0c07a069ae4414bd899b185ab7cc20bc38f5e258233cfe4af4dc6cde8e40d464"},
 ]
 
 [package.dependencies]
@@ -1399,4 +1399,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "3635157fdc43c28e8e82c3ca478597f73032e8aa7ff07c5f7de3ec44d73836d9"
+content-hash = "f5aa0a459de9ad3ef1d46c9598977f90cd7a9b9c06123ff276428e833aeaddae"

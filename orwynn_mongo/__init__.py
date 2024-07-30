@@ -887,6 +887,7 @@ async def _init_plugin(args: SysArgs[MongoCfg]) -> Res[None]:
 
     _g.client = MongoClient(args.cfg.url)
     _g.db = _g.client[args.cfg.database_name]
+    _g.cfg = args.cfg
 
     for doc_type in Doc.__subclasses__():
         # set new dict to not leak it between docs
@@ -902,12 +903,13 @@ async def _init_plugin(args: SysArgs[MongoCfg]) -> Res[None]:
     return Ok(None)
 
 async def _destroy_plugin(args: SysArgs[MongoCfg]) -> Res[None]:
+    print(1, env.is_clean_allowed(), env.is_debug(), _get_global_cfg())
+    if _get_global_cfg().must_clean_db_on_destroy:
+        drop_db()
+
     _g.client = None
     _g.db = None
     _g.doc_types.clear()
-
-    if _get_global_cfg().must_clean_db_on_destroy:
-        drop_db()
 
     return Ok(None)
 
